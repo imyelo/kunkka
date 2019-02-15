@@ -3,14 +3,22 @@
   "version": "0.0.0",
   "description": "",
   "main": "src",
-  "scripts": {
-  },
+  "scripts": {},
   "repository": "imyelo/vcli",
-  "keywords": ["cli"],
+  "keywords": [
+    "cli"
+  ],
+  "engines": {
+    "node": ">=8.0.0"
+  },
   "author": "yelo <zhihuzeye@gmail.com>",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/imyelo/vcli/issues"
   },
-  "homepage": "https://github.com/imyelo/vcli#readme"
+  "homepage": "https://github.com/imyelo/vcli#readme",
+  "dependencies": {
+    "cosmiconfig": "^5.0.7",
+    "minimist": "^1.2.0"
+  }
 }
