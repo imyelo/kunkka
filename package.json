@@ -1,0 +1,16 @@
+{
+  "name": "vcli",
+  "version": "0.0.0",
+  "description": "",
+  "main": "src",
+  "scripts": {
+  },
+  "repository": "imyelo/vcli",
+  "keywords": ["cli"],
+  "author": "yelo <zhihuzeye@gmail.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/imyelo/vcli/issues"
+  },
+  "homepage": "https://github.com/imyelo/vcli#readme"
+}
