@@ -11,8 +11,7 @@ class PluginAPI {
     this.hooks.add(name, fn)
   }
 
-  registerCommand (Command) {
-    const { name } = Command
+  registerCommand (name, Command) {
     if (this.commands.has(name)) {
       throw new Error(`Command "${name}" has been registered twice, please check for conflicting plugins.`)
     }
@@ -70,6 +69,7 @@ class VCli {
   config = {}
   commands = new Map()
   hooks = new Hooks()
+  plugins = new Set()
 
   constructor () {
     this.init()
@@ -87,10 +87,12 @@ class VCli {
       this.config = rc.config
     }
 
-    const { hooks, commands } = this
+    const { hooks, commands, plugins } = this
     const api = new Cli.PluginAPI({ hooks, commands })
 
-    for (let plugin of this.config.plugins) {
+    ;(this.config.plugins || []).forEach((plugin) => plugins.add(plugin))
+
+    for (let plugin of this.plugins) {
       // TODO: resolve plugin
       // TODO: read options
       // plugin.apply(api, options)
@@ -99,6 +101,7 @@ class VCli {
 
     await hooks.invoke('prerun')
     await this.run(commandName, rawArgs)
+    await hooks.invoke('exit')
   }
 
   async run(name, rawArgs) {
