@@ -3,27 +3,31 @@ const cosmiconfig = require('cosmiconfig')
 
 class VCli {
   static app = 'vcli'
+  static PluginAPI = PluginAPI
 
   args = []
   config = {}
+  commands = new Map()
+  hooks = new Hooks()
 
   constructor () {
     this.init()
   }
 
   async init() {
-    this.args = minimist(process.argv.slice(2))
+    const Cli = this.constructor
 
-    const commandName = this.args._[0]
+    const rawArgs = process.argv.slice(2)
+    const args = minimist(rawArgs)
+    const commandName = args._[0]
 
-    const rc = await cosmiconfig(this.constructor.app).search()
+    const rc = await cosmiconfig(Cli.app).search()
     if (rc && rc.config) {
       this.config = rc.config
     }
 
-    const commands = new Map()
-    const hooks = new Hooks()
-    const api = new PluginAPI({ hooks, commands })
+    const { hooks, commands } = this
+    const api = new Cli.PluginAPI({ hooks, commands })
 
     for (let plugin of this.config.plugins) {
       // TODO: resolve plugin
@@ -33,28 +37,16 @@ class VCli {
     }
 
     await hooks.invoke('prerun')
-    await this.run(commandName, this.args)
+    await this.run(commandName, rawArgs)
   }
 
-  async run(name, args) {
-
-  }
-}
-
-class Command {
-  static hidden = false
-  static description = ''
-  static usage = ''
-  static examples = []
-  static args = []
-  static flags = {}
-
-  parse ({ args, flags }) {
-    // TODO
-  }
-
-  async run () {
-    throw new Error('You need to implement it')
+  async run(name, rawArgs) {
+    if (!this.commands.has(name)) {
+      throw new Error(`Command "${name}" has not been registered.`)
+    }
+    const Command = this.commands.get(name)
+    const command = new Command({ rawArgs })
+    await command.run()
   }
 }
 
@@ -70,10 +62,30 @@ class PluginAPI {
 
   registerCommand (Command) {
     const { name } = Command
-    if (Map.has(name)) {
+    if (this.commands.has(name)) {
       throw new Error(`Command "${name}" has been registered twice, please check for conflicting plugins.`)
     }
     this.commands.set(name, Command)
+  }
+}
+
+class Command {
+  static hidden = false
+  static description = ''
+  static usage = ''
+  static examples = []
+  static args = {} // minimist options
+
+  constructor ({ rawArgs }) {
+    this.rawArgs = rawArgs
+  }
+
+  parse ({ args }) {
+    return minimist(this.rawArgs, args)
+  }
+
+  async run () {
+    throw new Error('You need to implement it')
   }
 }
 
