@@ -2,11 +2,22 @@
   "name": "vcli",
   "version": "0.0.0",
   "description": "",
-  "main": "src",
-  "scripts": {},
+  "main": "lib/index.js",
+  "scripts": {
+    "start": "babel src --out-dir lib --watch",
+    "clean": "rimraf ./cjs ./esm",
+    "prebuild": "npm run clean",
+    "build": "babel src --out-dir lib",
+    "prepublishOnly": "npm run build",
+    "pretest": "npm run build",
+    "test": "ava"
+  },
   "repository": "imyelo/vcli",
   "keywords": [
     "cli"
+  ],
+  "files": [
+    "lib"
   ],
   "engines": {
     "node": ">=8.0.0"
@@ -20,5 +31,14 @@
   "dependencies": {
     "cosmiconfig": "^5.0.7",
     "minimist": "^1.2.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.3.3",
+    "@babel/plugin-proposal-class-properties": "^7.3.3",
+    "@babel/preset-env": "^7.3.1",
+    "ava": "^1.2.1",
+    "rimraf": "^2.6.3",
+    "sinon": "^7.2.3"
   }
 }

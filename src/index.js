@@ -1,55 +1,6 @@
 const minimist = require('minimist')
 const cosmiconfig = require('cosmiconfig')
 
-class VCli {
-  static app = 'vcli'
-  static PluginAPI = PluginAPI
-
-  args = []
-  config = {}
-  commands = new Map()
-  hooks = new Hooks()
-
-  constructor () {
-    this.init()
-  }
-
-  async init() {
-    const Cli = this.constructor
-
-    const rawArgs = process.argv.slice(2)
-    const args = minimist(rawArgs)
-    const commandName = args._[0]
-
-    const rc = await cosmiconfig(Cli.app).search()
-    if (rc && rc.config) {
-      this.config = rc.config
-    }
-
-    const { hooks, commands } = this
-    const api = new Cli.PluginAPI({ hooks, commands })
-
-    for (let plugin of this.config.plugins) {
-      // TODO: resolve plugin
-      // TODO: read options
-      // plugin.apply(api, options)
-      plugin.apply(api, {})
-    }
-
-    await hooks.invoke('prerun')
-    await this.run(commandName, rawArgs)
-  }
-
-  async run(name, rawArgs) {
-    if (!this.commands.has(name)) {
-      throw new Error(`Command "${name}" has not been registered.`)
-    }
-    const Command = this.commands.get(name)
-    const command = new Command({ rawArgs })
-    await command.run()
-  }
-}
-
 class PluginAPI {
   constructor ({ hooks, commands }) {
     this.hooks = hooks
@@ -111,5 +62,55 @@ class Hooks {
   }
 }
 
-exports.VCli = VCli
+class VCli {
+  static app = 'vcli'
+  static PluginAPI = PluginAPI
+
+  args = []
+  config = {}
+  commands = new Map()
+  hooks = new Hooks()
+
+  constructor () {
+    this.init()
+  }
+
+  async init() {
+    const Cli = this.constructor
+
+    const rawArgs = process.argv.slice(2)
+    const args = minimist(rawArgs)
+    const commandName = args._[0]
+
+    const rc = await cosmiconfig(Cli.app).search()
+    if (rc && rc.config) {
+      this.config = rc.config
+    }
+
+    const { hooks, commands } = this
+    const api = new Cli.PluginAPI({ hooks, commands })
+
+    for (let plugin of this.config.plugins) {
+      // TODO: resolve plugin
+      // TODO: read options
+      // plugin.apply(api, options)
+      plugin.apply(api, {})
+    }
+
+    await hooks.invoke('prerun')
+    await this.run(commandName, rawArgs)
+  }
+
+  async run(name, rawArgs) {
+    if (!this.commands.has(name)) {
+      throw new Error(`Command "${name}" has not been registered.`)
+    }
+    const Command = this.commands.get(name)
+    const command = new Command({ rawArgs })
+    await command.run()
+  }
+}
+
+exports.PluginAPI = PluginAPI
 exports.Command = Command
+exports.VCli = VCli
