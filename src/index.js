@@ -26,8 +26,9 @@ class Command {
   static examples = []
   static args = {} // minimist options
 
-  constructor ({ rawArgs }) {
+  constructor ({ rawArgs, config }) {
     this.rawArgs = rawArgs
+    this.config = config
   }
 
   parse ({ args }) {
@@ -65,8 +66,6 @@ class VCli {
   static app = 'vcli'
   static PluginAPI = PluginAPI
 
-  args = []
-  config = {}
   commands = new Map()
   hooks = new Hooks()
   plugins = new Set()
@@ -83,14 +82,15 @@ class VCli {
     const commandName = args._[0]
 
     const rc = await cosmiconfig(Cli.app).search()
+    let config = {}
     if (rc && rc.config) {
-      this.config = rc.config
+      config = rc.config
     }
 
     const { hooks, commands, plugins } = this
     const api = new Cli.PluginAPI({ hooks, commands })
 
-    ;(this.config.plugins || []).forEach((plugin) => plugins.add(plugin))
+    ;(config.plugins || []).forEach((plugin) => plugins.add(plugin))
 
     for (let plugin of this.plugins) {
       // TODO: resolve plugin
@@ -100,16 +100,16 @@ class VCli {
     }
 
     await hooks.invoke('prerun')
-    await this.run(commandName, rawArgs)
+    await this.run(commandName, { rawArgs, config })
     await hooks.invoke('exit')
   }
 
-  async run(name, rawArgs) {
+  async run(name, { rawArgs, config }) {
     if (!this.commands.has(name)) {
       throw new Error(`Command "${name}" has not been registered.`)
     }
     const Command = this.commands.get(name)
-    const command = new Command({ rawArgs })
+    const command = new Command({ rawArgs, config })
     await command.run()
   }
 }
