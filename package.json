@@ -38,9 +38,10 @@
     "@babel/plugin-proposal-class-properties": "^7.3.3",
     "@babel/preset-env": "^7.3.1",
     "ava": "^1.2.1",
+    "fs-extra": "^7.0.1",
     "memory-fs": "^0.4.1",
-    "proxyquire": "^2.1.0",
     "rimraf": "^2.6.3",
-    "sinon": "^7.2.3"
+    "sinon": "^7.2.3",
+    "tempy": "^0.2.1"
   }
 }
