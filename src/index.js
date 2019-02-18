@@ -112,40 +112,50 @@ class VCli {
      * load config
      */
     const rc = await cosmiconfig(Cli.app).search()
-    let config = {}
-    if (rc && rc.config) {
-      config = rc.config
-    }
 
     const { hooks, commands, plugins } = this
     const pluginApi = new Cli.PluginAPI({ hooks, commands })
     const presetApi = new Cli.PresetAPI()
 
-    foreach(config.plugins || [], (line) => {
-      plugins.push(parseShortcut(line))
-    })
-
     /**
      * apply presets
+     *
+     * Step:
+     *
+     *  1. lookup presets (including the local config)
+     *  2. merged plugins
+     *  3. merged pure configs
+     *
      */
-    let presets = [...config.presets || []]
-
-    // TODO: refactor
-    while (presets.length > 0) {
-      let line = presets.shift()
-      let [module, options] = parseShortcut(line)
-      let preset = module.apply(presetApi, options)
-
-      config = {
-        ...omit(['presets', 'plugins'])(preset),
-        ...omit(['presets', 'plugins'])(config),
+    let presets = ((local) => {
+      let presets = []
+      function lookup (config) {
+        if (Array.isArray(config.presets)) {
+          foreach(config.presets, (p) => {
+            let [module, options] = parseShortcut(p)
+            let preset = module.apply(presetApi, options)
+            lookup(preset)
+          })
+        }
+        presets.push(config)
       }
-      foreach((preset.plugins || []).reverse(), (line) => {
-        plugins.unshift(parseShortcut(line))
-      })
+      lookup(local)
+      return presets
+    })(rc && rc.config ? rc.config : {})
 
-      foreach((preset.presets || []).reverse(), (p) => presets.unshift(p))
-    }
+    foreach(presets, (preset) => {
+      foreach(preset.plugins || [], (line) => {
+        plugins.push(parseShortcut(line))
+      })
+    })
+
+    const pure = omit(['presets', 'plugins'])
+    const config = presets.reduce((memo, next) => {
+      return {
+        ...pure(memo),
+        ...pure(next),
+      }
+    }, {})
 
     /**
      * apply plugins

@@ -114,6 +114,6 @@ test.serial('load presets alone', macro, async (t) => {
     apply: (api) => api.hook('spy', spy => spy('g')),
   }`)
 }, async (t, spy) => {
-  // t.true(spy.config.calledWithMatch({ foo: 'bar', qux: 'nyc' }))
-  // t.deepEqual(spy.hook.args, [['f'], ['g'], ['c'], ['d'], ['e'], ['a'], ['b']])
+  t.true(spy.config.calledWithMatch({ foo: 'bar', qux: 'nyc' }))
+  t.deepEqual(spy.hook.args, [['f'], ['g'], ['c'], ['d'], ['e'], ['a'], ['b']])
 })
