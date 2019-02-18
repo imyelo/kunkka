@@ -9,18 +9,26 @@ test.beforeEach(setup)
 test.afterEach.always(teardown)
 
 async function macro (t, setup, testing) {
-  const spy = sinon.spy()
+  const spy = {
+    config: sinon.spy(),
+    hook: sinon.spy(),
+  }
 
   await setup(t)
 
   class BuildCommand extends Command {
-    run () {
-      spy(this.config)
+    async run () {
+      await this.hooks.invoke('spy', spy.hook)
+      spy.config(this.config)
     }
   }
 
   class Cli extends VCli {
     static app = 'cli'
+
+    init () {
+      this.hooks.add('foobar', (message) => spy.hook(message))
+    }
   }
 
   await run(t, Cli, BuildCommand, 'build')
@@ -33,96 +41,79 @@ test.serial('load presets alone', macro, async (t) => {
   const { cwd } = t.context
   await fs.writeFile(`${cwd}/.clirc`, `{
     "presets": [
-      "./preset.js"
+      "./preset-a.js",
+      "./preset-b.js"
     ],
     "plugins": [
-      "./plugin-a.js"
+      "./plugin-a.js",
+      "./plugin-b.js"
     ]
   }`)
-  await fs.writeFile(`${cwd}/preset.js`, `module.exports = {
-    apply (api) {
-      return {
-        foo: 'bar',
-        plugins: [
-          './plugin-b.js',
-        ],
-      }
-    },
+  await fs.writeFile(`${cwd}/preset-a.js`, `module.exports = {
+    apply: (api) => ({
+      foo: 'baz',
+      qux: 'nyc',
+      presets: [
+        './preset-c.js',
+        './preset-d.js',
+      ],
+      plugins: [
+        './plugin-c.js',
+        './plugin-d.js',
+      ],
+    }),
+  }`)
+  await fs.writeFile(`${cwd}/preset-b.js`, `module.exports = {
+    apply: (api) => ({
+      foo: 'bar',
+      plugins: [
+        './plugin-e.js',
+      ],
+    }),
+  }`)
+  await fs.writeFile(`${cwd}/preset-c.js`, `module.exports = {
+    apply: (api) => ({
+      plugins: [
+        './plugin-f.js',
+      ],
+    }),
+  }`)
+  await fs.writeFile(`${cwd}/preset-d.js`, `module.exports = {
+    apply: (api) => ({
+      plugins: [
+        './plugin-g.js',
+      ],
+    }),
   }`)
   await fs.writeFile(`${cwd}/plugin-a.js`, `module.exports = {
-    apply () {}
+    name: 'a',
+    apply: (api) => api.hook('spy', spy => spy('a')),
   }`)
   await fs.writeFile(`${cwd}/plugin-b.js`, `module.exports = {
-    apply () {}
+    name: 'b',
+    apply: (api) => api.hook('spy', spy => spy('b')),
+  }`)
+  await fs.writeFile(`${cwd}/plugin-c.js`, `module.exports = {
+    name: 'c',
+    apply: (api) => api.hook('spy', spy => spy('c')),
+  }`)
+  await fs.writeFile(`${cwd}/plugin-d.js`, `module.exports = {
+    name: 'd',
+    apply: (api) => api.hook('spy', spy => spy('d')),
+  }`)
+  await fs.writeFile(`${cwd}/plugin-e.js`, `module.exports = {
+    name: 'e',
+    apply: (api) => api.hook('spy', spy => spy('e')),
+  }`)
+  await fs.writeFile(`${cwd}/plugin-f.js`, `module.exports = {
+    name: 'f',
+    apply: (api) => api.hook('spy', spy => spy('f')),
+  }`)
+  await fs.writeFile(`${cwd}/plugin-g.js`, `module.exports = {
+    name: 'g',
+    apply: (api) => api.hook('spy', spy => spy('g')),
   }`)
 }, async (t, spy) => {
-  t.true(spy.calledWithMatch({ foo: 'bar' }))
-  t.true(spy.calledWithMatch({ presets: ['./preset.js'] }))
-  t.true(spy.calledWithMatch({ plugins: ['./plugin-a.js', './plugin-b.js'] }))
+  // t.true(spy.config.calledWithMatch({ foo: 'bar', qux: 'nyc' }))
+  // t.deepEqual(spy.hook.args, [['f'], ['g'], ['c'], ['d'], ['e'], ['a'], ['b']])
 })
-
-// test.serial('load plugins with empty options', macro, async (t) => {
-//   const { cwd } = t.context
-//   await fs.writeFile(`${cwd}/.clirc`, `{
-//     "plugins": [
-//       ["./plugin.js"]
-//     ]
-//   }`)
-//   await fs.writeFile(`${cwd}/plugin.js`, `module.exports = {
-//     apply (api, options) {
-//       api.hook('foo', (fn) => {
-//         fn('bar', options)
-//       })
-//     },
-//   }`)
-// }, (t, spy) => {
-//   t.true(spy.calledOnceWithExactly('bar', void 0), 'plugin should be applied with options')
-// })
-
-// test.serial('load plugins with options', macro, async (t) => {
-//   const { cwd } = t.context
-//   await fs.writeFile(`${cwd}/.clirc`, `{
-//     "plugins": [
-//       ["./plugin.js", {
-//         "foo": "bar"
-//       }]
-//     ]
-//   }`)
-//   await fs.writeFile(`${cwd}/plugin.js`, `module.exports = {
-//     apply (api, options) {
-//       api.hook('foo', (fn) => {
-//         fn('bar', options)
-//       })
-//     },
-//   }`)
-// }, (t, spy) => {
-//   t.true(spy.calledOnceWith('bar', { foo: 'bar' }), 'plugin should be applied with options')
-// })
-
-// test.serial('load multiple plugins', macro, async (t) => {
-//   const { cwd } = t.context
-//   await fs.writeFile(`${cwd}/.clirc`, `{
-//     "plugins": [
-//       "./plugin-a.js",
-//       "./plugin-b.js"
-//     ]
-//   }`)
-//   await fs.writeFile(`${cwd}/plugin-a.js`, `module.exports = {
-//     apply (api, options) {
-//       api.hook('foo', (fn) => {
-//         fn('bar', options)
-//       })
-//     },
-//   }`)
-//   await fs.writeFile(`${cwd}/plugin-b.js`, `module.exports = {
-//     apply (api, options) {
-//       api.hook('foo', (fn) => {
-//         fn('baz', options)
-//       })
-//     },
-//   }`)
-// }, (t, spy) => {
-//   t.true(spy.calledTwice)
-//   t.true(spy.calledWithExactly('bar', void 0), 'plugin should be applied with options')
-//   t.true(spy.calledWithExactly('baz', void 0), 'plugin should be applied with options')
-// })

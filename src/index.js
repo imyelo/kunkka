@@ -2,6 +2,17 @@ const minimist = require('minimist')
 const cosmiconfig = require('cosmiconfig')
 const importCwd = require('import-cwd')
 const omit = require('omit')
+const foreach = require('foreach')
+
+const parseShortcut = function (line) {
+  let module, options
+  if (Array.isArray(line)) {
+    [module, options] = line
+  } else {
+    module = line
+  }
+  return [importCwd(module), options]
+}
 
 class PluginAPI {
   constructor ({ hooks, commands }) {
@@ -22,7 +33,6 @@ class PluginAPI {
 }
 
 class PresetAPI {}
-
 
 class Command {
   static hidden = false
@@ -75,15 +85,21 @@ class VCli {
 
   commands = new Map()
   hooks = new Hooks()
-  plugins = new Set()
-  presets = new Set()
+  plugins = []
 
   constructor () {
-    this.init()
+    this._init()
   }
 
-  async init() {
+  async init () {}
+
+  async _init() {
     const Cli = this.constructor
+
+    /**
+     * apply custom init fn
+     */
+    await this.init()
 
     /**
      * parsing command name
@@ -101,50 +117,40 @@ class VCli {
       config = rc.config
     }
 
-    const { hooks, commands, plugins, presets } = this
+    const { hooks, commands, plugins } = this
     const pluginApi = new Cli.PluginAPI({ hooks, commands })
     const presetApi = new Cli.PresetAPI()
 
-    /**
-     * load presets
-     */
-    ;(config.presets || []).forEach((preset) => {
-      let options
-      if (Array.isArray(preset)) {
-        [preset, options] = preset
-      }
-      presets.add([importCwd(preset), options])
+    foreach(config.plugins || [], (line) => {
+      plugins.push(parseShortcut(line))
     })
 
-    for (let [preset, options] of this.presets) {
-      let result = preset.apply(presetApi, options)
-      // TODO: refactor merge logic
+    /**
+     * apply presets
+     */
+    let presets = [...config.presets || []]
+
+    // TODO: refactor
+    while (presets.length > 0) {
+      let line = presets.shift()
+      let [module, options] = parseShortcut(line)
+      let preset = module.apply(presetApi, options)
+
       config = {
-        ...omit(['presets', 'plugins'])(result),
+        ...omit(['presets', 'plugins'])(preset),
         ...omit(['presets', 'plugins'])(config),
-        presets: [
-          ...result.presets,
-          ...config.presets,
-        ],
-        plugins: [
-          ...result.plugins,
-          ...config.plugins,
-        ],
       }
+      foreach((preset.plugins || []).reverse(), (line) => {
+        plugins.unshift(parseShortcut(line))
+      })
+
+      foreach((preset.presets || []).reverse(), (p) => presets.unshift(p))
     }
 
     /**
-     * load plugins
+     * apply plugins
      */
-    ;(config.plugins || []).forEach((plugin) => {
-      let options
-      if (Array.isArray(plugin)) {
-        [plugin, options] = plugin
-      }
-      plugins.add([importCwd(plugin), options])
-    })
-
-    for (let [plugin, options] of this.plugins) {
+    for (let [plugin, options] of new Set(this.plugins)) {
       plugin.apply(pluginApi, options)
     }
 

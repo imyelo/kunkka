@@ -33,7 +33,7 @@ export const run = function (t, Cli, Command, commandName, args = '') {
   ])
   return new Promise((resolve) => {
     const cli = new Cli()
-    cli.plugins.add([{
+    cli.plugins.push([{
       apply (api) {
         api.registerCommand(commandName, Command)
       },
