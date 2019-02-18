@@ -31,7 +31,9 @@
   "dependencies": {
     "cosmiconfig": "^5.0.7",
     "import-cwd": "^2.1.0",
-    "minimist": "^1.2.0"
+    "minimist": "^1.2.0",
+    "omit": "^1.0.1",
+    "read-pkg-up": "^4.0.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",

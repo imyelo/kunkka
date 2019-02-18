@@ -1,6 +1,7 @@
 const minimist = require('minimist')
 const cosmiconfig = require('cosmiconfig')
 const importCwd = require('import-cwd')
+const omit = require('omit')
 
 class PluginAPI {
   constructor ({ hooks, commands }) {
@@ -19,6 +20,9 @@ class PluginAPI {
     this.commands.set(name, Command)
   }
 }
+
+class PresetAPI {}
+
 
 class Command {
   static hidden = false
@@ -67,10 +71,12 @@ class Hooks {
 class VCli {
   static app = 'vcli'
   static PluginAPI = PluginAPI
+  static PresetAPI = PresetAPI
 
   commands = new Map()
   hooks = new Hooks()
   plugins = new Set()
+  presets = new Set()
 
   constructor () {
     this.init()
@@ -79,19 +85,57 @@ class VCli {
   async init() {
     const Cli = this.constructor
 
+    /**
+     * parsing command name
+     */
     const rawArgs = process.argv.slice(2)
     const args = minimist(rawArgs)
     const commandName = args._[0]
 
+    /**
+     * load config
+     */
     const rc = await cosmiconfig(Cli.app).search()
     let config = {}
     if (rc && rc.config) {
       config = rc.config
     }
 
-    const { hooks, commands, plugins } = this
-    const api = new Cli.PluginAPI({ hooks, commands })
+    const { hooks, commands, plugins, presets } = this
+    const pluginApi = new Cli.PluginAPI({ hooks, commands })
+    const presetApi = new Cli.PresetAPI()
 
+    /**
+     * load presets
+     */
+    ;(config.presets || []).forEach((preset) => {
+      let options
+      if (Array.isArray(preset)) {
+        [preset, options] = preset
+      }
+      presets.add([importCwd(preset), options])
+    })
+
+    for (let [preset, options] of this.presets) {
+      let result = preset.apply(presetApi, options)
+      // TODO: refactor merge logic
+      config = {
+        ...omit(['presets', 'plugins'])(result),
+        ...omit(['presets', 'plugins'])(config),
+        presets: [
+          ...result.presets,
+          ...config.presets,
+        ],
+        plugins: [
+          ...result.plugins,
+          ...config.plugins,
+        ],
+      }
+    }
+
+    /**
+     * load plugins
+     */
     ;(config.plugins || []).forEach((plugin) => {
       let options
       if (Array.isArray(plugin)) {
@@ -101,9 +145,12 @@ class VCli {
     })
 
     for (let [plugin, options] of this.plugins) {
-      plugin.apply(api, options)
+      plugin.apply(pluginApi, options)
     }
 
+    /**
+     * run
+     */
     await hooks.invoke('prerun')
     await this.run(commandName, { rawArgs, config })
     await hooks.invoke('exit')
@@ -120,5 +167,6 @@ class VCli {
 }
 
 exports.PluginAPI = PluginAPI
+exports.PresetAPI = PresetAPI
 exports.Command = Command
 exports.VCli = VCli
