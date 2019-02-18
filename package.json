@@ -30,6 +30,7 @@
   "homepage": "https://github.com/imyelo/vcli#readme",
   "dependencies": {
     "cosmiconfig": "^5.0.7",
+    "import-cwd": "^2.1.0",
     "minimist": "^1.2.0"
   },
   "devDependencies": {

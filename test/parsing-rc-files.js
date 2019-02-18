@@ -12,7 +12,7 @@ async function macro (t, [filename, content], verify) {
   const { cwd } = t.context
   const spy = sinon.spy()
 
-  fs.writeFileSync(`${cwd}/${filename}`, content)
+  await fs.writeFile(`${cwd}/${filename}`, content)
 
   class BuildCommand extends Command {
     run () {
