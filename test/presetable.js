@@ -11,6 +11,7 @@ test.afterEach.always(teardown)
 async function macro (t, setup, testing) {
   const spy = {
     config: sinon.spy(),
+    presets: sinon.spy(),
     hook: sinon.spy(),
   }
 
@@ -20,6 +21,7 @@ async function macro (t, setup, testing) {
     async run () {
       await this.hooks.invoke('spy', spy.hook)
       spy.config(this.config)
+      spy.presets(this.presets)
     }
   }
 
@@ -115,5 +117,27 @@ test.serial('load presets alone', macro, async (t) => {
   }`)
 }, async (t, spy) => {
   t.true(spy.config.calledWithMatch({ foo: 'bar', qux: 'nyc' }))
+  t.deepEqual(spy.presets.getCall(0).args[0], [
+    {
+      plugins: ['./plugin-f.js'],
+    },
+    {
+      plugins: ['./plugin-g.js'],
+    },
+    {
+      foo: 'baz',
+      qux: 'nyc',
+      presets: ['./preset-c.js', './preset-d.js'],
+      plugins: ['./plugin-c.js', './plugin-d.js'],
+    },
+    {
+      foo: 'bar',
+      plugins: ['./plugin-e.js'],
+    },
+    {
+      presets: ['./preset-a.js', './preset-b.js'],
+      plugins: ['./plugin-a.js', './plugin-b.js'],
+    },
+  ])
   t.deepEqual(spy.hook.args, [['f'], ['g'], ['c'], ['d'], ['e'], ['a'], ['b']])
 })

@@ -41,10 +41,12 @@ class Command {
   static examples = []
   static args = {} // minimist options
 
-  constructor ({ rawArgs, config, hooks }) {
+  constructor ({ rawArgs, config, hooks, presets, cli }) {
     this.rawArgs = rawArgs
     this.config = config
     this.hooks = hooks
+    this.presets = presets
+    this.cli = cli
   }
 
   parse ({ args }) {
@@ -86,6 +88,7 @@ class VCli {
   commands = new Map()
   hooks = new Hooks()
   plugins = []
+  presets = []
 
   constructor () {
     this._init()
@@ -127,7 +130,7 @@ class VCli {
      *  3. merged pure configs
      *
      */
-    let presets = ((local) => {
+    this.presets = ((local) => {
       let presets = []
       function lookup (config) {
         if (Array.isArray(config.presets)) {
@@ -143,14 +146,14 @@ class VCli {
       return presets
     })(rc && rc.config ? rc.config : {})
 
-    foreach(presets, (preset) => {
+    foreach(this.presets, (preset) => {
       foreach(preset.plugins || [], (line) => {
         plugins.push(parseShortcut(line))
       })
     })
 
     const pure = omit(['presets', 'plugins'])
-    const config = presets.reduce((memo, next) => {
+    const config = this.presets.reduce((memo, next) => {
       return {
         ...pure(memo),
         ...pure(next),
@@ -177,7 +180,13 @@ class VCli {
       throw new Error(`Command "${name}" has not been registered.`)
     }
     const Command = this.commands.get(name)
-    const command = new Command({ rawArgs, config, hooks: this.hooks })
+    const command = new Command({
+      rawArgs,
+      config,
+      hooks: this.hooks,
+      presets: this.presets,
+      cli: this,
+    })
     await command.run()
   }
 }
