@@ -3,7 +3,7 @@
 ## Feature
 - [x] Design for multiple commands
 - [x] Autoload config via rc or `cliname.config.js`
-- [] Autoload environment values from multiple `.env` files
+- [x] Autoload environment values from multiple `.env` files
 - [x] Pluginable
 - [x] Presetable
 - [x] Extendable plugin api
