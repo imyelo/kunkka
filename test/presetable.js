@@ -12,14 +12,14 @@ async function macro (t, setup, testing) {
   const spy = {
     config: sinon.spy(),
     presets: sinon.spy(),
-    hook: sinon.spy(),
+    plugins: sinon.spy(),
   }
 
   await setup(t)
 
   class BuildCommand extends Command {
     async run () {
-      await this.hooks.invoke('spy', spy.hook)
+      await this.hooks.invoke('spy', spy.plugins)
       spy.config(this.config)
       spy.presets(this.presets)
     }
@@ -139,5 +139,5 @@ test.serial('load presets alone', macro, async (t) => {
       plugins: ['./plugin-a.js', './plugin-b.js'],
     },
   ])
-  t.deepEqual(spy.hook.args, [['f'], ['g'], ['c'], ['d'], ['e'], ['a'], ['b']])
+  t.deepEqual(spy.plugins.args, [['f'], ['g'], ['c'], ['d'], ['e'], ['a'], ['b']])
 })

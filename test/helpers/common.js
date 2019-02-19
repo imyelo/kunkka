@@ -33,11 +33,11 @@ export const run = function (t, Cli, Command, commandName, args = '') {
   ])
   return new Promise((resolve) => {
     const cli = new Cli()
-    cli.plugins.push([{
+    cli.plugins.set({
       apply (api) {
         api.registerCommand(commandName, Command)
       },
-    }])
+    })
     cli.hooks.add('exit', () => {
       resolve()
     })

@@ -5,13 +5,17 @@ const omit = require('omit')
 const foreach = require('foreach')
 
 const parseShortcut = function (line) {
-  let module, options
+  let name, options
   if (Array.isArray(line)) {
-    [module, options] = line
+    [name, options] = line
   } else {
-    module = line
+    name = line
   }
-  return [importCwd(module), options]
+  return {
+    module: importCwd(name),
+    name,
+    options,
+  }
 }
 
 class PluginAPI {
@@ -87,7 +91,7 @@ class VCli {
 
   commands = new Map()
   hooks = new Hooks()
-  plugins = []
+  plugins = new Map()
   presets = []
 
   constructor () {
@@ -116,7 +120,7 @@ class VCli {
      */
     const rc = await cosmiconfig(Cli.app).search()
 
-    const { hooks, commands, plugins } = this
+    const { hooks, commands } = this
     const pluginApi = new Cli.PluginAPI({ hooks, commands })
     const presetApi = new Cli.PresetAPI()
 
@@ -135,7 +139,7 @@ class VCli {
       function lookup (config) {
         if (Array.isArray(config.presets)) {
           foreach(config.presets, (p) => {
-            let [module, options] = parseShortcut(p)
+            let { module, options } = parseShortcut(p)
             let preset = module.apply(presetApi, options)
             lookup(preset)
           })
@@ -148,22 +152,23 @@ class VCli {
 
     foreach(this.presets, (preset) => {
       foreach(preset.plugins || [], (line) => {
-        plugins.push(parseShortcut(line))
+        let { module, options } = parseShortcut(line)
+        this.plugins.set(module, options)
       })
     })
 
-    const pure = omit(['presets', 'plugins'])
+    const purify = omit(['presets', 'plugins'])
     const config = this.presets.reduce((memo, next) => {
       return {
-        ...pure(memo),
-        ...pure(next),
+        ...purify(memo),
+        ...purify(next),
       }
     }, {})
 
     /**
      * apply plugins
      */
-    for (let [plugin, options] of new Set(this.plugins)) {
+    for (let [plugin, options] of this.plugins) {
       plugin.apply(pluginApi, options)
     }
 
