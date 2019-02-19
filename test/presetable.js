@@ -88,31 +88,24 @@ test.serial('load presets alone', macro, async (t) => {
     }),
   }`)
   await fs.writeFile(`${cwd}/plugin-a.js`, `module.exports = {
-    name: 'a',
     apply: (api) => api.hook('spy', spy => spy('a')),
   }`)
   await fs.writeFile(`${cwd}/plugin-b.js`, `module.exports = {
-    name: 'b',
     apply: (api) => api.hook('spy', spy => spy('b')),
   }`)
   await fs.writeFile(`${cwd}/plugin-c.js`, `module.exports = {
-    name: 'c',
     apply: (api) => api.hook('spy', spy => spy('c')),
   }`)
   await fs.writeFile(`${cwd}/plugin-d.js`, `module.exports = {
-    name: 'd',
     apply: (api) => api.hook('spy', spy => spy('d')),
   }`)
   await fs.writeFile(`${cwd}/plugin-e.js`, `module.exports = {
-    name: 'e',
     apply: (api) => api.hook('spy', spy => spy('e')),
   }`)
   await fs.writeFile(`${cwd}/plugin-f.js`, `module.exports = {
-    name: 'f',
     apply: (api) => api.hook('spy', spy => spy('f')),
   }`)
   await fs.writeFile(`${cwd}/plugin-g.js`, `module.exports = {
-    name: 'g',
     apply: (api) => api.hook('spy', spy => spy('g')),
   }`)
 }, async (t, spy) => {
@@ -190,4 +183,36 @@ test.serial('load presets with deep objects', macro, async (t) => {
       },
     },
   })
+})
+
+test.serial('load presets with duplicated plugins', macro, async (t) => {
+  const { cwd } = t.context
+  await fs.writeFile(`${cwd}/.clirc`, `{
+    "presets": [
+      "./preset-a.js"
+    ],
+    "plugins": [
+      ["./plugin-a.js", { "id": 1 }],
+      ["./plugin-c.js", { "id": 1 }],
+    ]
+  }`)
+  await fs.writeFile(`${cwd}/preset-a.js`, `module.exports = {
+    apply: (api) => ({
+      "plugins": [
+        ["./plugin-a.js", { id: 2 }],
+        ["./plugin-b.js", { id: 2 }],
+      ],
+    }),
+  }`)
+  await fs.writeFile(`${cwd}/plugin-a.js`, `module.exports = {
+    apply: (api, options) => api.hook('spy', spy => spy('a', options)),
+  }`)
+  await fs.writeFile(`${cwd}/plugin-b.js`, `module.exports = {
+    apply: (api, options) => api.hook('spy', spy => spy('b', options)),
+  }`)
+  await fs.writeFile(`${cwd}/plugin-c.js`, `module.exports = {
+    apply: (api, options) => api.hook('spy', spy => spy('c', options)),
+  }`)
+}, async (t, spy) => {
+  t.deepEqual(spy.plugins.args, [['a', { id: 1 }], ['b', { id: 2 }], ['c', { id: 1 }]])
 })
