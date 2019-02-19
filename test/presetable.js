@@ -141,3 +141,53 @@ test.serial('load presets alone', macro, async (t) => {
   ])
   t.deepEqual(spy.plugins.args, [['f'], ['g'], ['c'], ['d'], ['e'], ['a'], ['b']])
 })
+
+test.serial('load presets with deep objects', macro, async (t) => {
+  const { cwd } = t.context
+  await fs.writeFile(`${cwd}/.clirc`, `{
+    "foo": {
+      "b": "baz",
+      "qux": {
+        "a": "corge"
+      }
+    },
+    "presets": [
+      "./preset-a.js"
+    ]
+  }`)
+  await fs.writeFile(`${cwd}/preset-a.js`, `module.exports = {
+    apply: (api) => ({
+      foo: {
+        a: 'baz',
+      },
+      presets: [
+        './preset-b.js',
+      ],
+    }),
+  }`)
+  await fs.writeFile(`${cwd}/preset-b.js`, `module.exports = {
+    apply: (api) => ({
+      foo: {
+        a: 'bar',
+        b: 'bar',
+        c: 'bar',
+        qux: {
+          a: 'nyc',
+          b: 'nyc',
+        },
+      },
+    }),
+  }`)
+}, async (t, spy) => {
+  t.deepEqual(spy.config.getCall(0).args[0], {
+    foo: {
+      a: 'baz',
+      b: 'baz',
+      c: 'bar',
+      qux: {
+        a: 'corge',
+        b: 'nyc',
+      },
+    },
+  })
+})

@@ -3,6 +3,7 @@ const cosmiconfig = require('cosmiconfig')
 const importCwd = require('import-cwd')
 const omit = require('omit')
 const foreach = require('foreach')
+const merge = require('merge-deep')
 
 const parseShortcut = function (line) {
   let name, options
@@ -159,10 +160,7 @@ class VCli {
 
     const purify = omit(['presets', 'plugins'])
     const config = this.presets.reduce((memo, next) => {
-      return {
-        ...purify(memo),
-        ...purify(next),
-      }
+      return merge(purify(memo),purify(next))
     }, {})
 
     /**
