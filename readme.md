@@ -1,12 +1,12 @@
 # vcli
 
 ## Feature
-- [] Design for multiple commands
-- [] Autoload config via rc or `cliname.config.js`
+- [x] Design for multiple commands
+- [x] Autoload config via rc or `cliname.config.js`
 - [] Autoload environment values from multiple `.env` files
-- [] Pluginable
-- [] Presetable
-- [] Extendable plugin api
+- [x] Pluginable
+- [x] Presetable
+- [x] Extendable plugin api
 - [] Easy to use argv parsing util in each command
 
 ## License
