@@ -4,6 +4,7 @@ const importCwd = require('import-cwd')
 const omit = require('omit')
 const foreach = require('foreach')
 const merge = require('merge-deep')
+const EnvfilePlugin = require('./EnvfilePlugin')
 
 const parseShortcut = function (line) {
   let name, options
@@ -18,6 +19,10 @@ const parseShortcut = function (line) {
     options,
   }
 }
+
+const BUILTIN_PLUGINS = [
+  [EnvfilePlugin],
+]
 
 class PluginAPI {
   constructor ({ hooks, commands }) {
@@ -126,6 +131,13 @@ class VCli {
     const presetApi = new Cli.PresetAPI()
 
     /**
+     * insert built-in plugins
+     */
+    BUILTIN_PLUGINS.forEach(([plugin, options]) => {
+      this.plugins.set(plugin, options)
+    })
+
+    /**
      * apply presets
      *
      * Step:
@@ -167,7 +179,7 @@ class VCli {
      * apply plugins
      */
     for (let [plugin, options] of this.plugins) {
-      plugin.apply(pluginApi, options)
+      await plugin.apply(pluginApi, options)
     }
 
     /**
