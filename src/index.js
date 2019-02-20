@@ -94,6 +94,7 @@ class Cli {
   static app = 'kunkka'
   static PluginAPI = PluginAPI
   static PresetAPI = PresetAPI
+  static builtinPlugins = BUILTIN_PLUGINS
 
   commands = new Map()
   hooks = new Hooks()
@@ -133,7 +134,7 @@ class Cli {
     /**
      * insert built-in plugins
      */
-    BUILTIN_PLUGINS.forEach(([plugin, options]) => {
+    Cli.builtinPlugins.forEach(([plugin, options]) => {
       this.plugins.set(plugin, options)
     })
 
