@@ -90,8 +90,8 @@ class Hooks {
   }
 }
 
-class VCli {
-  static app = 'vcli'
+class Cli {
+  static app = 'kunkka'
   static PluginAPI = PluginAPI
   static PresetAPI = PresetAPI
 
@@ -209,4 +209,4 @@ class VCli {
 exports.PluginAPI = PluginAPI
 exports.PresetAPI = PresetAPI
 exports.Command = Command
-exports.VCli = VCli
+exports.Cli = Cli

@@ -1,6 +1,6 @@
 import test from 'ava'
 import sinon from 'sinon'
-import { VCli, Command } from '..'
+import { Cli, Command } from '..'
 import { setup, teardown, run } from './helpers/common'
 
 test.beforeEach(setup)
@@ -16,7 +16,7 @@ test.serial('run specified command', async (t) => {
     }
   }
 
-  class Cli extends VCli {
+  class MyCli extends Cli {
     static app = 'cli'
   }
 

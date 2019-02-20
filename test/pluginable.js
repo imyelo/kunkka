@@ -1,7 +1,7 @@
 import fs from 'fs-extra'
 import test from 'ava'
 import sinon from 'sinon'
-import { VCli, Command } from '..'
+import { Cli, Command } from '..'
 import { setup, teardown, run } from './helpers/common'
 
 test.beforeEach(setup)
@@ -19,11 +19,11 @@ async function macro (t, setup, testing) {
     }
   }
 
-  class Cli extends VCli {
+  class MyCli extends Cli {
     static app = 'cli'
   }
 
-  await run(t, Cli, BuildCommand, 'build')
+  await run(t, MyCli, BuildCommand, 'build')
 
   await testing(t, spy)
 

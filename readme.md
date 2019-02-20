@@ -1,4 +1,5 @@
-# vcli
+# kunkka
+> :anchor: Dead simple framework for building workflowing CLI tools like `babel` and `vue`
 
 ## Feature
 - [x] Design for multiple commands
