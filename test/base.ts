@@ -1,5 +1,5 @@
 import test from 'ava'
-import sinon from 'sinon'
+import * as sinon from 'sinon'
 import { Cli, Command } from '..'
 import { setup, teardown, run } from './helpers/common'
 
@@ -11,7 +11,7 @@ test.serial('run specified command', async (t) => {
   const spy = sinon.spy()
 
   class BuildCommand extends Command {
-    run () {
+    async run () {
       spy()
     }
   }

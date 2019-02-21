@@ -1,12 +1,12 @@
-const minimist = require('minimist')
-const cosmiconfig = require('cosmiconfig')
-const importCwd = require('import-cwd')
-const omit = require('omit')
-const foreach = require('foreach')
-const merge = require('merge-deep')
-const EnvfilePlugin = require('./EnvfilePlugin')
+import * as minimist from 'minimist'
+import * as cosmiconfig from 'cosmiconfig'
+import * as importCwd from 'import-cwd'
+import * as omit from 'omit'
+import * as foreach from 'foreach'
+import * as merge from 'merge-deep'
+import EnvfilePlugin from './EnvfilePlugin'
 
-const parseShortcut = function (line) {
+const parseShortcut = function (line: string | [string] | [string, any]) {
   let name, options
   if (Array.isArray(line)) {
     [name, options] = line
@@ -24,17 +24,44 @@ const BUILTIN_PLUGINS = [
   [EnvfilePlugin],
 ]
 
-class PluginAPI {
-  constructor ({ hooks, commands }) {
+class Hooks {
+  hooks: Map<string, Set<Function>>
+
+  constructor() {
+    this.hooks = new Map()
+  }
+
+  add(name: string, fn: Function) {
+    const hooks = this.get(name)
+    hooks.add(fn)
+    this.hooks.set(name, hooks)
+  }
+
+  get(name: string) {
+    return this.hooks.get(name) || new Set()
+  }
+
+  async invoke(name: string, ...args: any[]) {
+    for (const hook of this.get(name)) {
+      await hook(...args)
+    }
+  }
+}
+
+export class PluginAPI {
+  hooks: Hooks
+  commands: Map<string, Command>
+
+  constructor ({ hooks, commands }: { hooks: Hooks, commands: Map<string, Command> }) {
     this.hooks = hooks
     this.commands = commands
   }
 
-  hook (name, fn) {
+  hook (name: string, fn: Function) {
     this.hooks.add(name, fn)
   }
 
-  registerCommand (name, Command) {
+  registerCommand (name: string, Command: Command) {
     if (this.commands.has(name)) {
       throw new Error(`Command "${name}" has been registered twice, please check for conflicting plugins.`)
     }
@@ -42,16 +69,22 @@ class PluginAPI {
   }
 }
 
-class PresetAPI {}
+export class PresetAPI {}
 
-class Command {
+export class Command {
   static hidden = false
   static description = ''
   static usage = ''
   static examples = []
   static args = {} // minimist options
 
-  constructor ({ rawArgs, config, hooks, presets, cli }) {
+  rawArgs: any[]
+  config: any
+  hooks: Hooks
+  presets: any[]
+  cli: Cli
+
+  constructor ({ rawArgs, config, hooks, presets, cli }: { rawArgs: any[], config: any, hooks: Hooks, presets: any[], cli: Cli }) {
     this.rawArgs = rawArgs
     this.config = config
     this.hooks = hooks
@@ -59,7 +92,7 @@ class Command {
     this.cli = cli
   }
 
-  parse ({ args }) {
+  parse ({ args }: { args: minimist.Opts }) {
     return minimist(this.rawArgs, args)
   }
 
@@ -68,38 +101,16 @@ class Command {
   }
 }
 
-class Hooks {
-  constructor() {
-    this.hooks = new Map()
-  }
-
-  add(name, fn) {
-    const hooks = this.get(name)
-    hooks.add(fn)
-    this.hooks.set(name, hooks)
-  }
-
-  get(name) {
-    return this.hooks.get(name) || new Set()
-  }
-
-  async invoke(name, ...args) {
-    for (const hook of this.get(name)) {
-      await hook(...args)
-    }
-  }
-}
-
-class Cli {
-  static app = 'kunkka'
-  static PluginAPI = PluginAPI
-  static PresetAPI = PresetAPI
-  static builtinPlugins = BUILTIN_PLUGINS
+export class Cli {
+  static app: string = 'kunkka'
+  static PluginAPI: typeof PluginAPI = PluginAPI
+  static PresetAPI: typeof PresetAPI = PresetAPI
+  static builtinPlugins: Array<any> = BUILTIN_PLUGINS
 
   commands = new Map()
   hooks = new Hooks()
   plugins = new Map()
-  presets = []
+  presets: any[] = []
 
   constructor () {
     this._init()
@@ -108,7 +119,7 @@ class Cli {
   async init () {}
 
   async _init() {
-    const Cli = this.constructor
+    const constructor = this.constructor as typeof Cli
 
     /**
      * apply custom init fn
@@ -125,16 +136,16 @@ class Cli {
     /**
      * load config
      */
-    const rc = await cosmiconfig(Cli.app).search()
+    const rc = await cosmiconfig(constructor.app).search()
 
     const { hooks, commands } = this
-    const pluginApi = new Cli.PluginAPI({ hooks, commands })
-    const presetApi = new Cli.PresetAPI()
+    const pluginApi = new constructor.PluginAPI({ hooks, commands })
+    const presetApi = new constructor.PresetAPI()
 
     /**
      * insert built-in plugins
      */
-    Cli.builtinPlugins.forEach(([plugin, options]) => {
+    constructor.builtinPlugins.forEach(([plugin, options]) => {
       this.plugins.set(plugin, options)
     })
 
@@ -148,11 +159,11 @@ class Cli {
      *  3. merged pure configs
      *
      */
-    this.presets = ((local) => {
-      let presets = []
-      function lookup (config) {
+    this.presets = ((local: any) => {
+      let presets: any[] = []
+      function lookup (config: { presets: any[] }) {
         if (Array.isArray(config.presets)) {
-          foreach(config.presets, (p) => {
+          foreach(config.presets, (p: any) => {
             let { module, options } = parseShortcut(p)
             let preset = module.apply(presetApi, options)
             lookup(preset)
@@ -164,8 +175,8 @@ class Cli {
       return presets
     })(rc && rc.config ? rc.config : {})
 
-    foreach(this.presets, (preset) => {
-      foreach(preset.plugins || [], (line) => {
+    foreach(this.presets, (preset: { plugins: any[]}) => {
+      foreach(preset.plugins || [], (line: string | [string] | [string, any]) => {
         let { module, options } = parseShortcut(line)
         this.plugins.set(module, options)
       })
@@ -191,7 +202,7 @@ class Cli {
     await hooks.invoke('exit')
   }
 
-  async run(name, { rawArgs, config }) {
+  async run(name: string, { rawArgs, config }: {rawArgs: any, config: any}) {
     if (!this.commands.has(name)) {
       throw new Error(`Command "${name}" has not been registered.`)
     }
@@ -206,8 +217,3 @@ class Cli {
     await command.run()
   }
 }
-
-exports.PluginAPI = PluginAPI
-exports.PresetAPI = PresetAPI
-exports.Command = Command
-exports.Cli = Cli

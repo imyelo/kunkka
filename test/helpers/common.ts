@@ -1,8 +1,8 @@
-import fs from 'fs-extra'
-import tempy from 'tempy'
-import sinon from 'sinon'
+import * as fs from 'fs-extra'
+import * as tempy from 'tempy'
+import * as sinon from 'sinon'
 
-export const setup = (t) => {
+export const setup = (t: any) => {
   const cwd = tempy.directory()
 
   t.context.cwd = cwd
@@ -14,7 +14,7 @@ export const setup = (t) => {
   t.context.spies = new Map()
 }
 
-export const teardown = async (t) => {
+export const teardown = async (t: any) => {
   await fs.remove(t.context.cwd)
   for (let stub of t.context.stubs.values()) {
     stub.restore()
@@ -24,7 +24,7 @@ export const teardown = async (t) => {
   }
 }
 
-export const run = function (t, Cli, Command, commandName, args = '') {
+export const run = function (t: any, Cli: any, Command: any, commandName: string, args = '') {
   t.context.stubs.get('argv').value([
     '',
     '',
@@ -34,7 +34,7 @@ export const run = function (t, Cli, Command, commandName, args = '') {
   return new Promise((resolve) => {
     const cli = new Cli()
     cli.plugins.set({
-      apply (api) {
+      apply (api: any) {
         api.registerCommand(commandName, Command)
       },
     })

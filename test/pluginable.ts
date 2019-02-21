@@ -1,20 +1,20 @@
-import fs from 'fs-extra'
 import test from 'ava'
-import sinon from 'sinon'
-import { Cli, Command } from '..'
+import * as fs from 'fs-extra'
+import * as sinon from 'sinon'
+import { Cli, Command } from '../lib'
 import { setup, teardown, run } from './helpers/common'
 
 test.beforeEach(setup)
 
 test.afterEach.always(teardown)
 
-async function macro (t, setup, testing) {
+async function macro (t: any, setup: Function, testing: Function) {
   const spy = sinon.spy()
 
   await setup(t)
 
   class BuildCommand extends Command {
-    run () {
+    async run () {
       this.hooks.invoke('foo', spy)
     }
   }
@@ -30,7 +30,7 @@ async function macro (t, setup, testing) {
   t.pass()
 }
 
-test.serial('load plugins alone', macro, async (t) => {
+test.serial('load plugins alone', macro, async (t: any) => {
   const { cwd } = t.context
   await fs.writeFile(`${cwd}/.clirc`, `{
     "plugins": [
@@ -44,11 +44,11 @@ test.serial('load plugins alone', macro, async (t) => {
       })
     },
   }`)
-}, async (t, spy) => {
+}, async (t: any, spy: sinon.SinonSpy) => {
   t.true(spy.calledOnceWithExactly('bar', void 0), 'plugin should be applied with options')
 })
 
-test.serial('load plugins with empty options', macro, async (t) => {
+test.serial('load plugins with empty options', macro, async (t: any) => {
   const { cwd } = t.context
   await fs.writeFile(`${cwd}/.clirc`, `{
     "plugins": [
@@ -62,11 +62,11 @@ test.serial('load plugins with empty options', macro, async (t) => {
       })
     },
   }`)
-}, (t, spy) => {
+}, (t: any, spy: sinon.SinonSpy) => {
   t.true(spy.calledOnceWithExactly('bar', void 0), 'plugin should be applied with options')
 })
 
-test.serial('load plugins with options', macro, async (t) => {
+test.serial('load plugins with options', macro, async (t: any) => {
   const { cwd } = t.context
   await fs.writeFile(`${cwd}/.clirc`, `{
     "plugins": [
@@ -82,11 +82,11 @@ test.serial('load plugins with options', macro, async (t) => {
       })
     },
   }`)
-}, (t, spy) => {
+}, (t: any, spy: sinon.SinonSpy) => {
   t.true(spy.calledOnceWith('bar', { foo: 'bar' }), 'plugin should be applied with options')
 })
 
-test.serial('load multiple plugins', macro, async (t) => {
+test.serial('load multiple plugins', macro, async (t: any) => {
   const { cwd } = t.context
   await fs.writeFile(`${cwd}/.clirc`, `{
     "plugins": [
@@ -108,7 +108,7 @@ test.serial('load multiple plugins', macro, async (t) => {
       })
     },
   }`)
-}, (t, spy) => {
+}, (t: any, spy: sinon.SinonSpy) => {
   t.true(spy.calledTwice)
   t.true(spy.calledWithExactly('bar', void 0), 'plugin should be applied with options')
   t.true(spy.calledWithExactly('baz', void 0), 'plugin should be applied with options')

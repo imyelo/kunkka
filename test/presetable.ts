@@ -1,15 +1,21 @@
-import fs from 'fs-extra'
 import test from 'ava'
-import sinon from 'sinon'
-import { Cli, Command } from '..'
+import * as fs from 'fs-extra'
+import * as sinon from 'sinon'
+import { Cli, Command } from '../lib'
 import { setup, teardown, run } from './helpers/common'
 
 test.beforeEach(setup)
 
 test.afterEach.always(teardown)
 
-async function macro (t, setup, testing) {
-  const spy = {
+interface MacroSpy {
+  config: sinon.SinonSpy
+  presets: sinon.SinonSpy
+  plugins: sinon.SinonSpy
+}
+
+async function macro (t: any, setup: Function, testing: Function) {
+  const spy: MacroSpy = {
     config: sinon.spy(),
     presets: sinon.spy(),
     plugins: sinon.spy(),
@@ -27,10 +33,6 @@ async function macro (t, setup, testing) {
 
   class MyCli extends Cli {
     static app = 'cli'
-
-    init () {
-      this.hooks.add('foobar', (message) => spy.hook(message))
-    }
   }
 
   await run(t, MyCli, BuildCommand, 'build')
@@ -39,7 +41,7 @@ async function macro (t, setup, testing) {
   t.pass()
 }
 
-test.serial('load presets alone', macro, async (t) => {
+test.serial('load presets alone', macro, async (t: any) => {
   const { cwd } = t.context
   await fs.writeFile(`${cwd}/.clirc`, `{
     "presets": [
@@ -108,7 +110,7 @@ test.serial('load presets alone', macro, async (t) => {
   await fs.writeFile(`${cwd}/plugin-g.js`, `module.exports = {
     apply: (api) => api.hook('spy', spy => spy('g')),
   }`)
-}, async (t, spy) => {
+}, async (t: any, spy: MacroSpy) => {
   t.true(spy.config.calledWithMatch({ foo: 'bar', qux: 'nyc' }))
   t.deepEqual(spy.presets.getCall(0).args[0], [
     {
@@ -135,7 +137,7 @@ test.serial('load presets alone', macro, async (t) => {
   t.deepEqual(spy.plugins.args, [['f'], ['g'], ['c'], ['d'], ['e'], ['a'], ['b']])
 })
 
-test.serial('load presets with deep objects', macro, async (t) => {
+test.serial('load presets with deep objects', macro, async (t: any) => {
   const { cwd } = t.context
   await fs.writeFile(`${cwd}/.clirc`, `{
     "foo": {
@@ -171,7 +173,7 @@ test.serial('load presets with deep objects', macro, async (t) => {
       },
     }),
   }`)
-}, async (t, spy) => {
+}, async (t: any, spy: MacroSpy) => {
   t.deepEqual(spy.config.getCall(0).args[0], {
     foo: {
       a: 'baz',
@@ -185,7 +187,7 @@ test.serial('load presets with deep objects', macro, async (t) => {
   })
 })
 
-test.serial('load presets with duplicated plugins', macro, async (t) => {
+test.serial('load presets with duplicated plugins', macro, async (t: any) => {
   const { cwd } = t.context
   await fs.writeFile(`${cwd}/.clirc`, `{
     "presets": [
@@ -213,6 +215,6 @@ test.serial('load presets with duplicated plugins', macro, async (t) => {
   await fs.writeFile(`${cwd}/plugin-c.js`, `module.exports = {
     apply: (api, options) => api.hook('spy', spy => spy('c', options)),
   }`)
-}, async (t, spy) => {
+}, async (t: any, spy: MacroSpy) => {
   t.deepEqual(spy.plugins.args, [['a', { id: 1 }], ['b', { id: 2 }], ['c', { id: 1 }]])
 })

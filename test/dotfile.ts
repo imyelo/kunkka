@@ -1,12 +1,12 @@
-import fs from 'fs-extra'
 import test from 'ava'
-import sinon from 'sinon'
-import { Cli, Command } from '..'
+import * as fs from 'fs-extra'
+import * as sinon from 'sinon'
+import { Cli, Command } from '../lib'
 import { setup, teardown, run } from './helpers/common'
 
 test.beforeEach(setup)
 
-test.afterEach.always(async (t) => {
+test.afterEach.always(async (t: any) => {
   await teardown(t)
 
   ;['AA', 'BB', 'CC', 'DD'].forEach((name) => {
@@ -14,13 +14,13 @@ test.afterEach.always(async (t) => {
   })
 })
 
-async function macro (t, setup, testing) {
+async function macro (t: any, setup: Function, testing: Function) {
   const spy = sinon.spy()
 
   await setup(t)
 
   class BuildCommand extends Command {
-    run () {
+    async run () {
       spy([
         process.env.AA,
         process.env.BB,
@@ -41,7 +41,7 @@ async function macro (t, setup, testing) {
   t.pass()
 }
 
-test.serial('load env files by default', macro, async (t) => {
+test.serial('load env files by default', macro, async (t: any) => {
   const { cwd } = t.context
   process.env.NODE_ENV = ''
   await fs.writeFile(`${cwd}/.env`, `
@@ -62,11 +62,11 @@ test.serial('load env files by default', macro, async (t) => {
   await fs.writeFile(`${cwd}/.env.development.local`, `
   DD = 4
   `)
-}, async (t, spy) => {
+}, async (t: any, spy: sinon.SinonSpy) => {
   t.deepEqual(spy.getCall(0).args[0], ['1', '2', '3', '4'])
 })
 
-test.serial('load env files with specify env', macro, async (t) => {
+test.serial('load env files with specify env', macro, async (t: any) => {
   const { cwd } = t.context
   process.env.NODE_ENV = 'production'
   await fs.writeFile(`${cwd}/.env`, `
@@ -81,11 +81,11 @@ test.serial('load env files with specify env', macro, async (t) => {
   await fs.writeFile(`${cwd}/.env.production.local`, `
   DD = 4
   `)
-}, async (t, spy) => {
+}, async (t: any, spy: sinon.SinonSpy) => {
   t.deepEqual(spy.getCall(0).args[0], ['1', '2', '3', '4'])
 })
 
-test.serial('load env files without `.env`', macro, async (t) => {
+test.serial('load env files without `.env`', macro, async (t: any) => {
   const { cwd } = t.context
   process.env.NODE_ENV = ''
   await fs.writeFile(`${cwd}/.env.local`, `
@@ -100,11 +100,11 @@ test.serial('load env files without `.env`', macro, async (t) => {
   await fs.writeFile(`${cwd}/.env.development.local`, `
   DD = 4
   `)
-}, async (t, spy) => {
+}, async (t: any, spy: sinon.SinonSpy) => {
   t.deepEqual(spy.getCall(0).args[0], [void 0, '2', '3', '4'])
 })
 
-test.serial('load env files without `.env.local`', macro, async (t) => {
+test.serial('load env files without `.env.local`', macro, async (t: any) => {
   const { cwd } = t.context
   process.env.NODE_ENV = ''
   await fs.writeFile(`${cwd}/.env`, `
@@ -120,11 +120,11 @@ test.serial('load env files without `.env.local`', macro, async (t) => {
   await fs.writeFile(`${cwd}/.env.development.local`, `
   DD = 4
   `)
-}, async (t, spy) => {
+}, async (t: any, spy: sinon.SinonSpy) => {
   t.deepEqual(spy.getCall(0).args[0], ['1', '1', '3', '4'])
 })
 
-test.serial('load env files without `.env.{NODE_ENV}`', macro, async (t) => {
+test.serial('load env files without `.env.{NODE_ENV}`', macro, async (t: any) => {
   const { cwd } = t.context
   process.env.NODE_ENV = ''
   await fs.writeFile(`${cwd}/.env`, `
@@ -141,11 +141,11 @@ test.serial('load env files without `.env.{NODE_ENV}`', macro, async (t) => {
   await fs.writeFile(`${cwd}/.env.development.local`, `
   DD = 4
   `)
-}, async (t, spy) => {
+}, async (t: any, spy: sinon.SinonSpy) => {
   t.deepEqual(spy.getCall(0).args[0], ['1', '2', '2', '4'])
 })
 
-test.serial('load env files without `.env.{NODE_ENV}.local`', macro, async (t) => {
+test.serial('load env files without `.env.{NODE_ENV}.local`', macro, async (t: any) => {
   const { cwd } = t.context
   process.env.NODE_ENV = ''
   await fs.writeFile(`${cwd}/.env`, `
@@ -163,6 +163,6 @@ test.serial('load env files without `.env.{NODE_ENV}.local`', macro, async (t) =
   CC = 3
   DD = 3
   `)
-}, async (t, spy) => {
+}, async (t: any, spy: sinon.SinonSpy) => {
   t.deepEqual(spy.getCall(0).args[0], ['1', '2', '3', '3'])
 })

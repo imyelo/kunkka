@@ -1,7 +1,7 @@
-const { resolve } = require('path')
-const dotenv = require('dotenv')
+import { resolve } from 'path'
+import * as dotenv from 'dotenv'
 
-const load = (path) => {
+const load = (path: string) => {
   try {
     dotenv.config({ path, debug: process.env.DEBUG })
   } catch (err) {
@@ -30,4 +30,4 @@ const EnvfilePlugin = {
   },
 }
 
-module.exports = EnvfilePlugin
+export default EnvfilePlugin
