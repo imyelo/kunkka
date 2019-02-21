@@ -13,7 +13,7 @@ Please use at your own risk.
 - [x] Presetable
 - [x] Extendable plugin api
 - [ ] Easy to use argv parsing util in each command
-- [ ] Perfect with Typescript
+- [x] Perfect with Typescript
 
 ## License
 Apache-2.0 &copy; [yelo](https://github.com/imyelo), 2019 - present
