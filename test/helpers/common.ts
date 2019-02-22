@@ -1,6 +1,7 @@
 import * as fs from 'fs-extra'
 import * as tempy from 'tempy'
 import * as sinon from 'sinon'
+import { Plugin } from '../..'
 
 export const setup = (t: any) => {
   const cwd = tempy.directory()
@@ -33,11 +34,12 @@ export const run = function (t: any, Cli: any, Command: any, commandName: string
   ])
   return new Promise((resolve) => {
     const cli = new Cli()
-    cli.plugins.set({
+    const plugin: Plugin = {
       apply (api: any) {
         api.registerCommand(commandName, Command)
       },
-    })
+    }
+    cli.plugins.set(plugin)
     cli.hooks.add('exit', () => {
       resolve()
     })

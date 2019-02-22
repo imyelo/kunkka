@@ -25,7 +25,7 @@ const BUILTIN_PLUGINS = [
 ]
 
 class Hooks {
-  hooks: Map<string, Set<Function>>
+  private hooks: Map<string, Set<Function>>
 
   constructor() {
     this.hooks = new Map()
@@ -48,24 +48,28 @@ class Hooks {
   }
 }
 
-export class PluginAPI {
-  hooks: Hooks
-  commands: Map<string, Command>
+export interface Plugin {
+  apply (api: PluginAPI, options: object): void
+}
 
-  constructor ({ hooks, commands }: { hooks: Hooks, commands: Map<string, Command> }) {
+export class PluginAPI {
+  private hooks: Hooks
+  private Commands: Map<string, typeof Command>
+
+  constructor ({ hooks, Commands }: { hooks: Hooks, Commands: Map<string, typeof Command> }) {
     this.hooks = hooks
-    this.commands = commands
+    this.Commands = Commands
   }
 
   hook (name: string, fn: Function) {
     this.hooks.add(name, fn)
   }
 
-  registerCommand (name: string, Command: Command) {
-    if (this.commands.has(name)) {
+  registerCommand (name: string, theCommand: typeof Command) {
+    if (this.Commands.has(name)) {
       throw new Error(`Command "${name}" has been registered twice, please check for conflicting plugins.`)
     }
-    this.commands.set(name, Command)
+    this.Commands.set(name, theCommand)
   }
 }
 
@@ -107,9 +111,9 @@ export class Cli {
   static PresetAPI: typeof PresetAPI = PresetAPI
   static builtinPlugins: Array<any> = BUILTIN_PLUGINS
 
-  commands = new Map()
-  hooks = new Hooks()
-  plugins = new Map()
+  Commands: Map<string, typeof Command> = new Map()
+  hooks: Hooks = new Hooks()
+  plugins: Map<Function, any> = new Map()
   presets: any[] = []
 
   constructor () {
@@ -138,8 +142,8 @@ export class Cli {
      */
     const rc = await cosmiconfig(constructor.app).search()
 
-    const { hooks, commands } = this
-    const pluginApi = new constructor.PluginAPI({ hooks, commands })
+    const { hooks, Commands } = this
+    const pluginApi = new constructor.PluginAPI({ hooks, Commands })
     const presetApi = new constructor.PresetAPI()
 
     /**
@@ -175,7 +179,7 @@ export class Cli {
       return presets
     })(rc && rc.config ? rc.config : {})
 
-    foreach(this.presets, (preset: { plugins: any[]}) => {
+    foreach(this.presets, (preset: { plugins: any[] }) => {
       foreach(preset.plugins || [], (line: string | [string] | [string, any]) => {
         let { module, options } = parseShortcut(line)
         this.plugins.set(module, options)
@@ -202,12 +206,12 @@ export class Cli {
     await hooks.invoke('exit')
   }
 
-  async run(name: string, { rawArgs, config }: {rawArgs: any, config: any}) {
-    if (!this.commands.has(name)) {
+  async run(name: string, { rawArgs, config }: { rawArgs: any, config: any }) {
+    if (!this.Commands.has(name)) {
       throw new Error(`Command "${name}" has not been registered.`)
     }
-    const Command = this.commands.get(name)
-    const command = new Command({
+    const theCommand = this.Commands.get(name) as typeof Command
+    const command = new theCommand({
       rawArgs,
       config,
       hooks: this.hooks,
