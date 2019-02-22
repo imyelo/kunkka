@@ -72,11 +72,11 @@ export class PluginAPI {
 export class PresetAPI {}
 
 export class Command {
-  static hidden = false
-  static description = ''
-  static usage = ''
-  static examples = []
-  static args = {} // minimist options
+  static hidden: boolean = false
+  static description: string = ''
+  static usage: string = ''
+  static examples: string[] = []
+  static args: any = {} // rule of minimist options
 
   rawArgs: any[]
   config: any
