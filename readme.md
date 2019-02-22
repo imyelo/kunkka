@@ -6,6 +6,7 @@
 Please use at your own risk.
 
 ## Feature
+- [ ] Easy to get started
 - [x] Design for multiple commands
 - [x] Autoload config via rc or `cliname.config.js`
 - [x] Autoload environment values from multiple `.env` files
