@@ -1,11 +1,11 @@
 import Hooks from './Hooks'
-import Command from './Command'
+import { ICommandConstructor } from './Command'
 
 export default class PluginAPI {
   private hooks: Hooks
-  private Commands: Map<string, typeof Command>
+  private Commands: Map<string, ICommandConstructor>
 
-  constructor ({ hooks, Commands }: { hooks: Hooks, Commands: Map<string, typeof Command> }) {
+  constructor ({ hooks, Commands }: { hooks: Hooks, Commands: Map<string, ICommandConstructor> }) {
     this.hooks = hooks
     this.Commands = Commands
   }
@@ -14,10 +14,10 @@ export default class PluginAPI {
     this.hooks.add(name, fn)
   }
 
-  registerCommand (name: string, theCommand: typeof Command) {
+  registerCommand (name: string, Command: ICommandConstructor) {
     if (this.Commands.has(name)) {
       throw new Error(`Command "${name}" has been registered twice, please check for conflicting plugins.`)
     }
-    this.Commands.set(name, theCommand)
+    this.Commands.set(name, Command)
   }
 }

@@ -5,7 +5,7 @@ import * as omit from 'omit'
 import * as merge from 'merge-deep'
 
 import Hooks from './Hooks'
-import Command from './Command'
+import { ICommandConstructor } from './Command'
 import PluginAPI from './PluginAPI'
 import PresetAPI from './PresetAPI'
 import { parseShortcut } from './utils'
@@ -22,7 +22,7 @@ export default class Cli {
   static PresetAPI: typeof PresetAPI = PresetAPI
   static builtinPlugins: Array<any> = BUILTIN_PLUGINS
 
-  Commands: Map<string, typeof Command> = new Map()
+  Commands: Map<string, ICommandConstructor> = new Map()
   hooks: Hooks = new Hooks()
   plugins: Map<Function, any> = new Map()
   presets: any[] = []
@@ -118,11 +118,11 @@ export default class Cli {
   }
 
   async run(name: string, { rawArgs, config }: { rawArgs: any, config: any }) {
-    if (!this.Commands.has(name)) {
+    const Command = this.Commands.get(name)
+    if (!Command) {
       throw new Error(`Command "${name}" has not been registered.`)
     }
-    const theCommand = this.Commands.get(name) as typeof Command
-    const command = new theCommand({
+    const command = new Command({
       rawArgs,
       config,
       hooks: this.hooks,

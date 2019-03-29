@@ -1,5 +1,5 @@
 export { default as Cli } from './Cli'
-export { default as Command } from './Command'
+export { default as Command, FlagType } from './Command'
 export { default as PluginAPI } from './PluginAPI'
 export { default as PresetAPI } from './PresetAPI'
 export { default as Plugin } from './Plugin'
