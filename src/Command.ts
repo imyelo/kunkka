@@ -5,12 +5,12 @@ import Cli from './Cli'
 import Hooks from './Hooks'
 
 export enum FlagType {
-  'string',
-  'number',
-  'boolean',
-  'string_array',
-  'number_array',
-  'boolean_array' ,
+  String,
+  Number,
+  Boolean,
+  StringArray,
+  NumberArray,
+  BooleanArray,
 }
 
 interface FlagSchema {
@@ -87,27 +87,27 @@ export default abstract class BaseCommand {
        * type
        */
       switch (schema.type) {
-        case FlagType.string: {
+        case FlagType.String: {
           options.string.push(key)
           break
         }
-        case FlagType.number: {
+        case FlagType.Number: {
           options.number.push(key)
           break
         }
-        case FlagType.boolean: {
+        case FlagType.Boolean: {
           options.boolean.push(key)
           break
         }
-        case FlagType.string_array: {
+        case FlagType.StringArray: {
           options.array.push({ key, string: true })
           break
         }
-        case FlagType.number_array: {
+        case FlagType.NumberArray: {
           options.array.push({ key, number: true })
           break
         }
-        case FlagType.boolean_array: {
+        case FlagType.BooleanArray: {
           options.array.push({ key, boolean: true })
           break
         }

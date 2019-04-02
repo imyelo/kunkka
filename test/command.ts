@@ -1,6 +1,6 @@
 import test from 'ava'
 import * as sinon from 'sinon'
-import { Cli, Command, FlagType} from '..'
+import { Cli, Command, FlagType } from '..'
 import { setup, teardown, run } from './helpers/common'
 
 test.beforeEach(setup)
@@ -13,22 +13,22 @@ test.serial('parse flags: define', async (t) => {
   class BuildCommand extends Command {
     static flags = {
       boolean: {
-        type: FlagType.boolean,
+        type: FlagType.Boolean,
       },
       string: {
-        type: FlagType.string,
+        type: FlagType.String,
       },
       number: {
-        type: FlagType.number,
+        type: FlagType.Number,
       },
       booleanArray: {
-        type: FlagType.boolean_array,
+        type: FlagType.BooleanArray,
       },
       stringArray: {
-        type: FlagType.string_array,
+        type: FlagType.StringArray,
       },
       numberArray: {
-        type: FlagType.number_array,
+        type: FlagType.NumberArray,
       },
     }
     async run () {
@@ -53,22 +53,22 @@ test.serial('parse flags: types', async (t) => {
   class BuildCommand extends Command {
     static flags = {
       boolean: {
-        type: FlagType.boolean,
+        type: FlagType.Boolean,
       },
       string: {
-        type: FlagType.string,
+        type: FlagType.String,
       },
       number: {
-        type: FlagType.number,
+        type: FlagType.Number,
       },
       booleanArray: {
-        type: FlagType.boolean_array,
+        type: FlagType.BooleanArray,
       },
       stringArray: {
-        type: FlagType.string_array,
+        type: FlagType.StringArray,
       },
       numberArray: {
-        type: FlagType.number_array,
+        type: FlagType.NumberArray,
       },
     }
     async run () {
@@ -100,11 +100,11 @@ test.serial('parse flags: default', async (t) => {
   class BuildCommand extends Command {
     static flags = {
       boolean: {
-        type: FlagType.boolean,
+        type: FlagType.Boolean,
         default: true,
       },
       string: {
-        type: FlagType.string,
+        type: FlagType.String,
         default: 'A',
       },
     }
@@ -133,27 +133,27 @@ test.serial('parse flags: alias', async (t) => {
   class BuildCommand extends Command {
     static flags = {
       boolean: {
-        type: FlagType.boolean,
+        type: FlagType.Boolean,
         alias: 'b',
       },
       string: {
-        type: FlagType.string,
+        type: FlagType.String,
         alias: 's',
       },
       number: {
-        type: FlagType.number,
+        type: FlagType.Number,
         alias: ['n'],
       },
       booleanArray: {
-        type: FlagType.boolean_array,
+        type: FlagType.BooleanArray,
         alias: 'x',
       },
       stringArray: {
-        type: FlagType.string_array,
+        type: FlagType.StringArray,
         alias: 'y',
       },
       numberArray: {
-        type: FlagType.number_array,
+        type: FlagType.NumberArray,
         alias: ['z'],
       },
     }
@@ -186,7 +186,7 @@ test.serial('parse flags: validate', async (t) => {
   class BuildCommand extends Command {
     static flags = {
       string: {
-        type: FlagType.string,
+        type: FlagType.String,
         validate: (v: string) => v.length > 5,
       },
     }
@@ -218,7 +218,7 @@ test.serial('parse flags: filter', async (t) => {
   class BuildCommand extends Command {
     static flags = {
       string: {
-        type: FlagType.string,
+        type: FlagType.String,
         filter: (v: string) => `0${v}`,
       },
     }
