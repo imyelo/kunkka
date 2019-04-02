@@ -8,14 +8,13 @@ export enum FlagType {
   'string',
   'number',
   'boolean',
-  'array<string>',
-  'array<number>',
-  'array<boolean>' ,
+  'string_array',
+  'number_array',
+  'boolean_array' ,
 }
 
 interface FlagSchema {
   type: FlagType,
-  multiple?: boolean,
   default?: any,
   alias?: string | string[],
   validate?: (input: any) => boolean,
@@ -100,15 +99,15 @@ export default abstract class BaseCommand {
           options.boolean.push(key)
           break
         }
-        case FlagType["array<string>"]: {
+        case FlagType.string_array: {
           options.array.push({ key, string: true })
           break
         }
-        case FlagType["array<number>"]: {
+        case FlagType.number_array: {
           options.array.push({ key, number: true })
           break
         }
-        case FlagType["array<boolean>"]: {
+        case FlagType.boolean_array: {
           options.array.push({ key, boolean: true })
           break
         }
@@ -143,12 +142,15 @@ export default abstract class BaseCommand {
     foreach(constructor.flags, (schema: FlagSchema, key: string) => {
       let value = argv[key]
       if (schema.validate) {
-        if (schema.validate(value)) {
+        if (!schema.validate(value)) {
           throw new Error(`The value of flag "${key}" is invalid.`)
         }
       }
       if (schema.filter) {
         value = schema.filter(value)
+      }
+      if (typeof value === 'undefined') {
+        return
       }
       flags[key] = value
     })

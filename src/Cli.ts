@@ -11,9 +11,11 @@ import PresetAPI from './PresetAPI'
 import { parseShortcut } from './utils'
 
 import EnvfilePlugin from './plugins/EnvfilePlugin'
+import ErrorPlugin from './plugins/ErrorPlugin'
 
 const BUILTIN_PLUGINS = [
   [EnvfilePlugin],
+  [ErrorPlugin],
 ]
 
 export default class Cli {
@@ -112,9 +114,13 @@ export default class Cli {
     /**
      * run
      */
-    await hooks.invoke('prerun')
-    await this.run(commandName, { rawArgs, config })
-    await hooks.invoke('exit')
+    try {
+      await hooks.invoke('prerun')
+      await this.run(commandName, { rawArgs, config })
+      await hooks.invoke('exit')
+    } catch (error) {
+      await hooks.invoke('error', error)
+    }
   }
 
   async run(name: string, { rawArgs, config }: { rawArgs: any, config: any }) {
