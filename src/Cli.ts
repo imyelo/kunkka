@@ -9,6 +9,7 @@ import { ICommandConstructor } from './Command'
 import PluginAPI from './PluginAPI'
 import PresetAPI from './PresetAPI'
 import { parseShortcut } from './utils'
+import KunkkaSignal from './Signal'
 
 import EnvfilePlugin from './plugins/EnvfilePlugin'
 import ErrorPlugin from './plugins/ErrorPlugin'
@@ -18,15 +19,15 @@ const BUILTIN_PLUGINS = [
   [ErrorPlugin],
 ]
 
-export default class Cli {
+export default class Cli<CustomSignal> {
   static app: string = 'kunkka'
   static PluginAPI: typeof PluginAPI = PluginAPI
   static PresetAPI: typeof PresetAPI = PresetAPI
   static builtinPlugins: Array<any> = BUILTIN_PLUGINS
 
-  Commands: Map<string, ICommandConstructor> = new Map()
-  hooks: Hooks = new Hooks()
-  plugins: Map<Function, any> = new Map()
+  Commands: Map<string, ICommandConstructor<CustomSignal>> = new Map()
+  hooks = new Hooks<CustomSignal | KunkkaSignal>()
+  plugins: Map<any, any> = new Map()
   presets: any[] = []
 
   constructor () {
@@ -115,7 +116,6 @@ export default class Cli {
      * run
      */
     try {
-      await hooks.invoke('prerun')
       await this.run(commandName, { rawArgs, config })
       await hooks.invoke('exit')
     } catch (error) {

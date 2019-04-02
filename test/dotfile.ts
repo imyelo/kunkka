@@ -19,7 +19,7 @@ async function macro (t: any, setup: Function, testing: Function) {
 
   await setup(t)
 
-  class BuildCommand extends Command {
+  class BuildCommand extends Command<never> {
     async run () {
       spy([
         process.env.AA,
@@ -30,7 +30,7 @@ async function macro (t: any, setup: Function, testing: Function) {
     }
   }
 
-  class MyCli extends Cli {
+  class MyCli extends Cli<never> {
     static app = 'cli'
   }
 

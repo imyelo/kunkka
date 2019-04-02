@@ -15,6 +15,8 @@ interface MacroSpy {
 }
 
 async function macro (t: any, setup: Function, testing: Function) {
+  type Signal = 'spy'
+
   const spy: MacroSpy = {
     config: sinon.spy(),
     presets: sinon.spy(),
@@ -23,7 +25,7 @@ async function macro (t: any, setup: Function, testing: Function) {
 
   await setup(t)
 
-  class BuildCommand extends Command {
+  class BuildCommand extends Command<Signal> {
     async run () {
       await this.hooks.invoke('spy', spy.plugins)
       spy.config(this.config)
@@ -31,7 +33,7 @@ async function macro (t: any, setup: Function, testing: Function) {
     }
   }
 
-  class MyCli extends Cli {
+  class MyCli extends Cli<Signal> {
     static app = 'cli'
   }
 

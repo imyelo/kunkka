@@ -3,6 +3,7 @@ import * as foreach from 'foreach'
 
 import Cli from './Cli'
 import Hooks from './Hooks'
+import KunkkaSignal from './Signal'
 
 export enum FlagType {
   String,
@@ -21,25 +22,25 @@ interface FlagSchema {
   filter?: (input: any) => any,
 }
 
-interface CommandConstructorOptions {
+interface CommandConstructorOptions<CustomSignal> {
   rawArgs: any[],
   config: any,
-  hooks: Hooks,
+  hooks: Hooks<CustomSignal | KunkkaSignal>,
   presets: any[],
-  cli: Cli,
+  cli: Cli<CustomSignal>,
 }
 
-export interface ICommandConstructor {
+export interface ICommandConstructor<CustomSignal> {
   hidden: boolean,
   description: string,
   usage: string,
   examples: string[],
   flags: { [key: string]: FlagSchema },
 
-  new ({ rawArgs, config, hooks, presets, cli }: CommandConstructorOptions): BaseCommand,
+  new ({ rawArgs, config, hooks, presets, cli }: CommandConstructorOptions<CustomSignal>): BaseCommand<CustomSignal>,
 }
 
-export default abstract class BaseCommand {
+export default abstract class BaseCommand<CustomSignal> {
   static hidden: boolean = false
   static description: string = ''
   static usage: string = ''
@@ -49,11 +50,11 @@ export default abstract class BaseCommand {
   rawArgs: any[]
   flags: { [key: string]: any } = {}
   config: any
-  hooks: Hooks
+  hooks: Hooks<CustomSignal | KunkkaSignal>
   presets: any[]
-  cli: Cli
+  cli: Cli<CustomSignal>
 
-  constructor ({ rawArgs, config, hooks, presets, cli }: CommandConstructorOptions) {
+  constructor ({ rawArgs, config, hooks, presets, cli }: CommandConstructorOptions<CustomSignal>) {
     this.rawArgs = rawArgs
     this.config = config
     this.hooks = hooks
@@ -63,7 +64,7 @@ export default abstract class BaseCommand {
   }
 
   private parse () {
-    const constructor = this.constructor as ICommandConstructor
+    const constructor = this.constructor as ICommandConstructor<CustomSignal>
     const flags: { [key: string]: any } = {}
 
     let options: {

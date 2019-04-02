@@ -14,13 +14,13 @@ async function macro (t: any, [filename, content]: [string, string], verify: Fun
 
   await fs.writeFile(`${cwd}/${filename}`, content)
 
-  class BuildCommand extends Command {
+  class BuildCommand extends Command<never> {
     async run () {
       spy(this.config)
     }
   }
 
-  class MyCli extends Cli {
+  class MyCli extends Cli<never> {
     static app = 'cli'
   }
 

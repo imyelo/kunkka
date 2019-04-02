@@ -10,7 +10,7 @@ test.afterEach.always(teardown)
 test.serial('parse flags: define', async (t) => {
   const spy = sinon.spy()
 
-  class BuildCommand extends Command {
+  class BuildCommand extends Command<never> {
     static flags = {
       boolean: {
         type: FlagType.Boolean,
@@ -36,7 +36,7 @@ test.serial('parse flags: define', async (t) => {
     }
   }
 
-  class MyCli extends Cli {
+  class MyCli extends Cli<never> {
     static app = 'cli'
   }
 
@@ -50,7 +50,7 @@ test.serial('parse flags: define', async (t) => {
 test.serial('parse flags: types', async (t) => {
   const spy = sinon.spy()
 
-  class BuildCommand extends Command {
+  class BuildCommand extends Command<never> {
     static flags = {
       boolean: {
         type: FlagType.Boolean,
@@ -76,7 +76,7 @@ test.serial('parse flags: types', async (t) => {
     }
   }
 
-  class MyCli extends Cli {
+  class MyCli extends Cli<never> {
     static app = 'cli'
   }
 
@@ -97,7 +97,7 @@ test.serial('parse flags: types', async (t) => {
 test.serial('parse flags: default', async (t) => {
   const spy = sinon.spy()
 
-  class BuildCommand extends Command {
+  class BuildCommand extends Command<never> {
     static flags = {
       boolean: {
         type: FlagType.Boolean,
@@ -113,7 +113,7 @@ test.serial('parse flags: default', async (t) => {
     }
   }
 
-  class MyCli extends Cli {
+  class MyCli extends Cli<never> {
     static app = 'cli'
   }
 
@@ -130,7 +130,7 @@ test.serial('parse flags: default', async (t) => {
 test.serial('parse flags: alias', async (t) => {
   const spy = sinon.spy()
 
-  class BuildCommand extends Command {
+  class BuildCommand extends Command<never> {
     static flags = {
       boolean: {
         type: FlagType.Boolean,
@@ -162,7 +162,7 @@ test.serial('parse flags: alias', async (t) => {
     }
   }
 
-  class MyCli extends Cli {
+  class MyCli extends Cli<never> {
     static app = 'cli'
   }
 
@@ -183,7 +183,7 @@ test.serial('parse flags: alias', async (t) => {
 test.serial('parse flags: validate', async (t) => {
   const spy = sinon.spy()
 
-  class BuildCommand extends Command {
+  class BuildCommand extends Command<never> {
     static flags = {
       string: {
         type: FlagType.String,
@@ -195,7 +195,7 @@ test.serial('parse flags: validate', async (t) => {
     }
   }
 
-  class MyCli extends Cli {
+  class MyCli extends Cli<never> {
     static app = 'cli'
   }
 
@@ -215,7 +215,7 @@ test.serial('parse flags: validate', async (t) => {
 test.serial('parse flags: filter', async (t) => {
   const spy = sinon.spy()
 
-  class BuildCommand extends Command {
+  class BuildCommand extends Command<never> {
     static flags = {
       string: {
         type: FlagType.String,
@@ -227,7 +227,7 @@ test.serial('parse flags: filter', async (t) => {
     }
   }
 
-  class MyCli extends Cli {
+  class MyCli extends Cli<never> {
     static app = 'cli'
   }
 

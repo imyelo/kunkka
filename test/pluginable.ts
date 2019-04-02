@@ -9,17 +9,19 @@ test.beforeEach(setup)
 test.afterEach.always(teardown)
 
 async function macro (t: any, setup: Function, testing: Function) {
+  type Signal = 'foo'
+
   const spy = sinon.spy()
 
   await setup(t)
 
-  class BuildCommand extends Command {
+  class BuildCommand extends Command<Signal> {
     async run () {
       this.hooks.invoke('foo', spy)
     }
   }
 
-  class MyCli extends Cli {
+  class MyCli extends Cli<never> {
     static app = 'cli'
   }
 
