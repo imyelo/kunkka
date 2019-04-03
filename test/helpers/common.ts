@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra'
 import * as tempy from 'tempy'
 import * as sinon from 'sinon'
-import { Cli, Command, Plugin } from '../..'
+import { Cli, Command, ICommandConstructor, Plugin, PluginAPI } from '../..'
 
 export const setup = (t: any) => {
   const cwd = tempy.directory()
@@ -25,7 +25,7 @@ export const teardown = async (t: any) => {
   }
 }
 
-export const run = function (t: any, Cli: any, Command: any, commandName: string, args = '') {
+export const run = function <Signal> (t: any, CustomCli: { new(): Cli<Signal> }, CustomCommand: ICommandConstructor<Signal>, commandName: string, args = '') {
   t.context.stubs.get('argv').value([
     '',
     '',
@@ -33,13 +33,13 @@ export const run = function (t: any, Cli: any, Command: any, commandName: string
     ...args.split(' ').filter(Boolean),
   ])
   return new Promise((resolve, reject) => {
-    const cli = new Cli()
-    const plugin: Plugin<any> = {
-      apply (api: any) {
-        api.registerCommand(commandName, Command)
+    const cli = new CustomCli()
+    const plugin: Plugin<Signal> = {
+      apply (api) {
+        api.registerCommand(commandName, CustomCommand)
       },
     }
-    cli.plugins.set(plugin)
+    cli.plugins.set(plugin, void 0)
     cli.hooks.add('exit', () => {
       resolve()
     })
